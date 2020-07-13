@@ -1,5 +1,4 @@
 import React, {Component, Fragment} from 'react'
-import withHoc from './topicHoc';
 import PropTypes from "prop-types";
 import Comments from "../comments/comments";
 import FormControl from "@material-ui/core/FormControl";
@@ -18,7 +17,8 @@ import FavoriteIcon from '@material-ui/icons/Favorite';
 import ShareIcon from '@material-ui/icons/Share';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
-import {Redirect} from "react-router-dom";
+import Router from 'next/router';
+
 
 const style = {
     marginLeft: '20px'
@@ -49,19 +49,12 @@ class Topic extends Component {
 
     };
 
-    componentDidMount(): void {}
-    componentWillUnmount(): void {}
-
-    changeCommentLimit = (event: React.ChangeEvent<{ value: unknown }>) => {
-        this.props.changeCommentLimit(event.target.value);
+    changeCommentLimit = ({ target: { value }}) => {
+        this.props.changeCommentLimit(value);
     };
 
-    changeRepliesLimit = (event: React.ChangeEvent<{ value: unknown }>) => {
-        this.props.changeRepliesLimit(event.target.value);
-    };
-
-    permalinkChange = ( link ) => {
-        this.props.changePermaLink(link);
+    changeRepliesLimit = ({ target: { value }}) => {
+        this.props.changeRepliesLimit(value);
     };
 
     handleExpandClick = () => {
@@ -69,16 +62,12 @@ class Topic extends Component {
     };
 
     render = () => {
-        console.log('props: ' + this.props.permalink);
-        if (this.props.permalink.length === 0 ){
-            return <Redirect exact to={'/'}/>;
-        }
-        const { expanded } = this.state;
-        const { commentLimit, repliesLimit, data = {} } = this.props;
-        const { topicAndComment = {} } = data;
-        const { topic = {}, comments = [] } = topicAndComment;
-        const { author = 'no content', created = 1594233272, title = 'no content', score = 0 } = topic;
 
+        const { expanded } = this.state;
+        const { query, post = {} } = this.props;
+        const { permalink = '', commentLimit = 3, repliesLimit = 5 } = query;
+        const { topic = {}, comments = [] } = post;
+        const { author = 'no content', title = 'no content', score = 0 } = topic;
 
         return (
             <Fragment>
@@ -87,7 +76,6 @@ class Topic extends Component {
                         {}
                     </Grid>
                 </Grid>
-
                 <Card>
                     <CardHeader
                         avatar={
@@ -101,10 +89,9 @@ class Topic extends Component {
                             </Typography>
                         }
                         title={ author}
-                        subheader={  created }
                     />
                     <CardMedia
-                        image="https://external-preview.redd.it/JWywiLYVoRDSnYdxm8O8QbvDNfKDLsEob7eLRtUA0Yg.png?width=1080&crop=smart&format=pjpg&auto=webp&s=46f89d85813bcdaeb6c0367babfd818e970e8ced"
+                        image=""
                         title="Paella dish"
                     />
                     <CardContent>
@@ -145,7 +132,7 @@ class Topic extends Component {
                     <Select
                         native
                         value={commentLimit}
-                        onChange={this.changeCommentLimit}
+                        onChange={(vl) => Router.push('/topic', `/topic?commentLimit=${vl.target.value}&repliesLimit=${repliesLimit}&permalink=${permalink}`)}
                         label="Age"
                         inputProps={{
                             name: 'age',
@@ -166,7 +153,7 @@ class Topic extends Component {
                     <Select
                         native
                         value={repliesLimit}
-                        onChange={this.changeRepliesLimit}
+                        onChange={(vl) => Router.push('/topic', `/topic?commentLimit=${commentLimit}&repliesLimit=${vl.target.value}&permalink=${permalink}`)}
                         label="Age"
                         inputProps={{
                             name: 'age',
@@ -186,8 +173,6 @@ class Topic extends Component {
             </Fragment>
         )
     }
-
 }
 
-
-export default withHoc(Topic);
+export default Topic;

@@ -63,10 +63,20 @@ const API = new GraphQLObjectType({
     name: 'API',
     fields: {
         bookmark: {
-            type: new GraphQLList(TopicType),
+            type: TopicsType,
+            args: {
+                limit: { type: GraphQLInt },
+                after: { type: GraphQLString },
+                before: { type: GraphQLString },
+            },
             resolve(parent, args){
 
-                return Topics.find({});
+                return {
+                    topics: Topics.find({}),
+                    after: '',
+                    before: '',
+                    dist: '',
+                };
             }
         },
         hot: {
@@ -200,30 +210,39 @@ const Mutation = new GraphQLObjectType({
                 created: { type: GraphQLInt },
             },
             resolve( parent, args ){
-                const {
-                    subreddit = '',
-                    title = 'no content',
-                    score = 0,
-                    thumbnail = '',
-                    url = '',
-                    selftext = '',
-                    permalink = '',
-                    author = '',
-                    created = 0
-                } = args;
-                const topic = new Topics({
-                    subreddit: subreddit,
-                    title: title,
-                    score: score,
-                    thumbnail: thumbnail,
-                    url: url,
-                    selftext: selftext,
-                    permalink: permalink,
-                    author: author,
-                    created: created,
-                });
 
-                return topic.save();
+                Topics.findOne({title: args.title}, function (err, result) {
+                    if (err) {
+                        console.log('Err: ' + err);
+                    } else {
+                        if (result == null) {
+                                const {
+                                    subreddit = '',
+                                    title = 'no content',
+                                    score = 0,
+                                    thumbnail = '',
+                                    url = '',
+                                    selftext = '',
+                                    permalink = '',
+                                    author = '',
+                                    created = 0
+                                } = args;
+                                const topic = new Topics({
+                                    subreddit: subreddit,
+                                    title: title,
+                                    score: score,
+                                    thumbnail: thumbnail,
+                                    url: url,
+                                    selftext: selftext,
+                                    permalink: permalink,
+                                    author: author,
+                                    created: created,
+                                });
+
+                                return topic.save();
+                        }
+                    }
+                });
             }
         },
         deleteTopic: {

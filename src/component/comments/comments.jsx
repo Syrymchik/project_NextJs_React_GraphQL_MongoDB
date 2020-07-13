@@ -29,9 +29,6 @@ export class Comment extends Component {
         comment: {},
     };
 
-    componentDidMount(): void {}
-    componentWillUnmount(): void {}
-
     render() {
         const { body, replies } = this.props.comment;
 
@@ -63,9 +60,6 @@ class Comments extends Component {
     static defaultProps = {
         comments: [],
     };
-
-    componentDidMount(): void {}
-    componentWillUnmount(): void {}
 
     render () {
         const { comments = []} = this.props;

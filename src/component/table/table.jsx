@@ -12,12 +12,15 @@ import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import BookmarkIcon from '@material-ui/icons/Bookmark';
-import { DataContext } from '../app/app'
-import {Link} from "react-router-dom";
-import withHoc from './tableHoc';
 import DeleteIcon from '@material-ui/icons/Delete';
+import Link from 'next/link'
+import { addTopic, deleteTopic } from '../../lib/api'
+import Router from 'next/router';
+import Typography from '@material-ui/core/Typography';
 
-const StyledTableCell = withStyles((theme: Theme) =>
+
+
+const StyledTableCell = withStyles((theme) =>
     createStyles({
         head: {
             backgroundColor: theme.palette.common.black,
@@ -29,7 +32,7 @@ const StyledTableCell = withStyles((theme: Theme) =>
     }),
 )(TableCell);
 
-const StyledTableRow = withStyles((theme: Theme) =>
+const StyledTableRow = withStyles((theme) =>
     createStyles({
         root: {
             '&:nth-of-type(odd)': {
@@ -38,6 +41,10 @@ const StyledTableRow = withStyles((theme: Theme) =>
         },
     }),
 )(TableRow);
+
+const style = {
+    marginTop: '70px',
+}
 
 class Item extends Component {
 
@@ -73,36 +80,52 @@ class Item extends Component {
 
     saveTopic = () => {
         return () => {
-            const {addTopic, item } = this.props;
-            addTopic({
-                score: item.score,
-                title: item.title,
-                subreddit: item.subreddit,
-                thumbnail: item.thumbnail,
-                url: item.url,
-                selftext: item.selftext,
-                permalink: item.permalink,
-                author: item.author,
-                created: item.created,
-            });
+            const { item } = this.props;
+            addTopic(
+                item.permalink,
+                item.subreddit,
+                item.title,
+                item.score,
+                item.thumbnail,
+                item.url,
+                item.selftext,
+                item.author ,
+                item.created,
+            );
         }
     };
 
     deleteBookMark = () => {
         return () => {
-            const {deleteTopic, item} = this.props;
-            deleteTopic({id: item.id})
+            const { item} = this.props;
+            deleteTopic(item.id);
+            Router.push('/[index]', '/bookmark');
         }
     };
 
     render(){
-        // , thumbnail, url, selftext, permalink
         const { subreddit, title, score, permalink } = this.props.item;
         const { isBookmark = false } = this.props;
+        let action;
+        if (!isBookmark) {
+            action =  <Button
+                endIcon={<BookmarkIcon/>}
+                onClick={this.saveTopic()}
+            >
+                save
+            </Button>
+        } else {
+            action = <Button
+                endIcon={<DeleteIcon/>}
+                onClick={
+                    this.deleteBookMark()
+                }
+            >
+                delete
+            </Button>
+        }
 
         return (
-            <DataContext.Consumer>
-                {({changePermaLink}) => (
                     <StyledTableRow>
                         <StyledTableCell colSpan={3} align="justify" component="th"
                                          scope="row"> {subreddit} </StyledTableCell>
@@ -114,40 +137,19 @@ class Item extends Component {
                                 color="inherit"
                                 aria-label="vertical outlined primary button group"
                             >
-                                <Link to={'/topic'}>
+                                <Link as={'/topic?permalink=' + permalink} href={'/topic'}>
                                     <Button
-                                        onClick={changePermaLink(permalink)}
                                         endIcon={<NavigateNextIcon/>}
-
                                     >
                                         read
                                     </Button>
                                 </Link>
-
-                                <Button
-                                    endIcon={<BookmarkIcon/>}
-                                    onClick={this.saveTopic()}
-                                    disabled={isBookmark}
-                                >
-                                    save
-                                </Button>
-                                <Button
-                                    endIcon={<DeleteIcon/>}
-                                    onClick={this.deleteBookMark()}
-                                    disabled={!isBookmark}
-                                >
-                                    delete
-                                </Button>
                                 {
-                                    isBookmark
+                                    action
                                 }
-
-
                             </ButtonGroup>
                         </StyledTableCell>
                     </StyledTableRow>
-                )}
-            </DataContext.Consumer>
         )
     }
 }
@@ -178,7 +180,8 @@ class TableComponent extends Component {
     };
 
     render() {
-        const { list = [], addTopic, deleteTopic, isBookmark } = this.props;
+        const { list = [], isBookmark } = this.props;
+        if (list.length <= 0) return  <Typography style={style} align="center" variant="h3" gutterBottom>No Content</Typography>;
 
         return (
             <Fragment>
@@ -196,7 +199,7 @@ class TableComponent extends Component {
                         <TableBody>
                             {
                                 list.map((item, index) =>
-                                    <Item item={item} key={index} addTopic={addTopic} deleteTopic={deleteTopic} isBookmark={isBookmark}/>
+                                    <Item item={item} key={index} isBookmark={isBookmark}/>
                                 )
                             }
                         </TableBody>
@@ -207,4 +210,4 @@ class TableComponent extends Component {
     }
 }
 
-export default withHoc(TableComponent);
+export default TableComponent;
